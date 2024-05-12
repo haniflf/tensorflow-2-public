@@ -1,3 +1,4 @@
+// Variables declared with let cannot be accessed outside the scope within which they are defined
 let mobilenet;
 let model;
 const webcam = new Webcam(document.getElementById('wc'));
@@ -26,26 +27,29 @@ async function train() {
   model = tf.sequential({
     layers: [
         
-      // YOUR CODE HERE
+        // The slice() method returns a shallow copy of a portion of an array into a new array object selected from start to end (end not included) where start and end represent the index of items in that array. The original array will not be modified.
+        tf.layers.flatten({inputShape: mobilenet.outputs[0].shape.slice(1)}),
+        tf.layers.dense({units: 100, activation: 'relu'}),
+        tf.layers.dense({units: 5, activation: 'softmax'})
 
     ]
   });
     
    
   // Set the optimizer to be tf.train.adam() with a learning rate of 0.0001.
-  const optimizer = // YOUR CODE HERE
+  const optimizer = tf.train.adam(0.0001);
     
         
   // Compile the model using the categoricalCrossentropy loss, and
   // the optimizer you defined above.
-  model.compile(// YOUR CODE HERE);
+  model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
  
   let loss = 0;
   model.fit(dataset.xs, dataset.ys, {
     epochs: 10,
     callbacks: {
       onBatchEnd: async (batch, logs) => {
-        loss = logs.loss.toFixed(5);
+        loss = logs.loss.toFixed(5); // 5 decimal places
         console.log('LOSS: ' + loss);
         }
       }
@@ -75,10 +79,13 @@ function handleButton(elem){
         // Add a case for lizard samples.
         // HINT: Look at the previous cases.
             
-        // YOUR CODE HERE
-		
-            
+        case "4":
+            lizardSamples++;
+            document.getElementById("lizardsamples").innerText = "Lizard samples:" + lizardSamples;
+            break;
+		  
 	}
+    
 	label = parseInt(elem.id);
 	const img = webcam.capture();
 	dataset.addExample(mobilenet.predict(img), label);
@@ -93,6 +100,7 @@ async function predict() {
       const predictions = model.predict(activation);
       return predictions.as1D().argMax();
     });
+      
     const classId = (await predictedClass.data())[0];
     var predictionText = "";
     switch(classId){
@@ -112,7 +120,9 @@ async function predict() {
         // Add a case for lizard samples.
         // HINT: Look at the previous cases.
             
-        // YOUR CODE HERE 
+        case 4:
+            predictionText = "I see Lizard";
+            break;
 	
             
 	}
